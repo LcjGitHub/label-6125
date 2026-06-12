@@ -30,8 +30,29 @@ const octaves = computed(() =>
   buildOctaveLayouts(props.notes, props.startOctave, props.endOctave),
 )
 
+function midiToOctave(midi: number): number {
+  return Math.floor(midi / 12) - 1
+}
+
+function isMidiInVisibleRange(midi: number): boolean {
+  const octave = midiToOctave(midi)
+  if (props.startOctave !== undefined && octave < props.startOctave) return false
+  if (props.endOctave !== undefined && octave > props.endOctave) return false
+  return true
+}
+
 const currentBaseMidi = computed(() => props.baseMidi ?? DEFAULT_BASE_MIDI)
-const shortcutLabels = computed(() => getShortcutLabels(currentBaseMidi.value))
+const shortcutLabels = computed(() => {
+  const all = getShortcutLabels(currentBaseMidi.value)
+  const filtered: Record<number, string> = {}
+  for (const [midiStr, label] of Object.entries(all)) {
+    const midi = Number(midiStr)
+    if (isMidiInVisibleRange(midi)) {
+      filtered[midi] = label
+    }
+  }
+  return filtered
+})
 
 const pressedMidis = ref<Set<number>>(new Set())
 const pressedKeys = ref<Set<string>>(new Set())
@@ -86,6 +107,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
   const midi = getMidiForKey(key, currentBaseMidi.value)
   if (midi === null) return
+  if (!isMidiInVisibleRange(midi)) return
 
   e.preventDefault()
   pressedKeys.value = new Set([...pressedKeys.value, key])
@@ -118,11 +140,17 @@ function handleKeyUp(e: KeyboardEvent) {
 
 function shiftOctave(direction: number) {
   const newBaseMidi = currentBaseMidi.value + direction * 12
-  if (newBaseMidi >= MIN_BASE_MIDI && newBaseMidi <= MAX_BASE_MIDI) {
-    pressedMidis.value = new Set()
-    pressedKeys.value = new Set()
-    emit('octaveChange', newBaseMidi)
+  if (newBaseMidi < MIN_BASE_MIDI || newBaseMidi > MAX_BASE_MIDI) return
+
+  const lowestShortcutMidi = newBaseMidi
+  const highestShortcutMidi = newBaseMidi + 23
+  if (!isMidiInVisibleRange(lowestShortcutMidi) || !isMidiInVisibleRange(highestShortcutMidi)) {
+    return
   }
+
+  pressedMidis.value = new Set()
+  pressedKeys.value = new Set()
+  emit('octaveChange', newBaseMidi)
 }
 
 function handleWindowBlur() {

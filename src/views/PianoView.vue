@@ -18,7 +18,7 @@ import {
 
 const notesStore = useNotesStore()
 const noteHistoryStore = useNoteHistoryStore()
-const { notes, activeNote, waveform, volume, duration, startOctave, endOctave, availableOctaves } = storeToRefs(notesStore)
+const { notes, activeNote, waveform, volume, duration, startOctave, endOctave } = storeToRefs(notesStore)
 
 const baseMidi = ref(DEFAULT_BASE_MIDI)
 
@@ -42,10 +42,7 @@ function handleOctaveChange(newBaseMidi: number) {
 }
 
 const currentOctaveRange = computed(() => {
-  const base = baseMidi.value
-  const lowOctave = Math.floor(base / 12) - 1
-  const highOctave = Math.floor((base + 12) / 12) - 1
-  return `C${lowOctave} – B${highOctave}`
+  return `C${startOctave.value} – B${endOctave.value}`
 })
 
 const shortcutNoteNames = computed(() =>
@@ -187,7 +184,7 @@ const upperBlackKeys = upperKeys.filter(k => k.isBlack)
               <span class="text-subtitle-2 font-weight-bold">八度范围</span>
               <v-select
                 v-model="startOctave"
-                :items="availableOctaves"
+                :items="notesStore.availableOctaves"
                 label="起始"
                 density="compact"
                 variant="outlined"
@@ -198,7 +195,7 @@ const upperBlackKeys = upperKeys.filter(k => k.isBlack)
               <span class="text-body-2 text-medium-emphasis">—</span>
               <v-select
                 v-model="endOctave"
-                :items="availableOctaves"
+                :items="notesStore.availableOctaves"
                 label="结束"
                 density="compact"
                 variant="outlined"

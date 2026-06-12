@@ -10,7 +10,7 @@ import { playTone } from '@/utils/audio'
 import { formatCents, formatSemitones, formatDirection } from '@/utils/interval'
 
 const notesStore = useNotesStore()
-const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform, volume, duration, startOctave, endOctave, availableOctaves } =
+const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform, volume, duration, startOctave, endOctave } =
   storeToRefs(notesStore)
 
 const selectedMidis = computed(() => {
@@ -57,7 +57,7 @@ async function handleKeyClick(note: Note) {
               <span class="text-subtitle-2 font-weight-bold">八度范围</span>
               <v-select
                 v-model="startOctave"
-                :items="availableOctaves"
+                :items="notesStore.availableOctaves"
                 label="起始"
                 density="compact"
                 variant="outlined"
@@ -68,7 +68,7 @@ async function handleKeyClick(note: Note) {
               <span class="text-body-2 text-medium-emphasis">—</span>
               <v-select
                 v-model="endOctave"
-                :items="availableOctaves"
+                :items="notesStore.availableOctaves"
                 label="结束"
                 density="compact"
                 variant="outlined"

@@ -22,6 +22,15 @@ const VALID_WAVEFORMS: readonly WaveformType[] = ['sine', 'square', 'triangle']
 const VALID_DURATIONS: readonly number[] = [0.2, 0.4, 0.6, 1.0, 1.5, 2.0]
 const AVAILABLE_OCTAVES: readonly number[] = [2, 3, 4, 5]
 
+function noteOctave(midi: number): number {
+  return Math.floor(midi / 12) - 1
+}
+
+function isNoteInOctaveRange(midi: number, start: number, end: number): boolean {
+  const oct = noteOctave(midi)
+  return oct >= start && oct <= end
+}
+
 function isValidWaveform(value: unknown): value is WaveformType {
   return typeof value === 'string' && VALID_WAVEFORMS.includes(value as WaveformType)
 }
@@ -88,11 +97,26 @@ export const useNotesStore = defineStore('notes', () => {
     setStorageItem(DURATION_STORAGE_KEY, newDuration)
   })
 
+  function clearOutOfRangeSelections() {
+    const start = startOctave.value
+    const end = endOctave.value
+    if (activeNote.value && !isNoteInOctaveRange(activeNote.value.midi, start, end)) {
+      activeNote.value = null
+    }
+    if (selectedNote1.value && !isNoteInOctaveRange(selectedNote1.value.midi, start, end)) {
+      selectedNote1.value = null
+    }
+    if (selectedNote2.value && !isNoteInOctaveRange(selectedNote2.value.midi, start, end)) {
+      selectedNote2.value = null
+    }
+  }
+
   watch(startOctave, (newStartOctave) => {
     setStorageItem(START_OCTAVE_STORAGE_KEY, newStartOctave)
     if (endOctave.value < newStartOctave) {
       endOctave.value = newStartOctave
     }
+    clearOutOfRangeSelections()
   })
 
   watch(endOctave, (newEndOctave) => {
@@ -100,6 +124,7 @@ export const useNotesStore = defineStore('notes', () => {
     if (startOctave.value > newEndOctave) {
       startOctave.value = newEndOctave
     }
+    clearOutOfRangeSelections()
   })
 
   function updateNoteReferences() {
