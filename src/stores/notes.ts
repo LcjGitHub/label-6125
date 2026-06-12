@@ -74,7 +74,7 @@ export const useNotesStore = defineStore('notes', () => {
   })
 
   /** 设置钢琴页当前点击的音 */
-  function setActiveNote(note: Note) {
+  function setActiveNote(note: Note | null) {
     activeNote.value = note
   }
 

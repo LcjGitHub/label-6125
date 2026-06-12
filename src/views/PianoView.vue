@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
 import WaveformSelector from '@/components/WaveformSelector.vue'
@@ -8,12 +8,18 @@ import { useNotesStore } from '@/stores/notes'
 import { useNoteHistoryStore } from '@/stores/noteHistory'
 import type { Note, NoteHistoryItem } from '@/types/note'
 import { playTone } from '@/utils/audio'
-import { useKeyboardPlay } from '@/utils/keyShortcut'
-import { getLowerOctaveKeys, getUpperOctaveKeys } from '@/data/keyMapping'
+import {
+  DEFAULT_BASE_MIDI,
+  getLowerOctaveKeys,
+  getUpperOctaveKeys,
+  getShortcutNoteNames,
+} from '@/data/keyMapping'
 
 const notesStore = useNotesStore()
 const noteHistoryStore = useNoteHistoryStore()
 const { notes, activeNote, waveform } = storeToRefs(notesStore)
+
+const baseMidi = ref(DEFAULT_BASE_MIDI)
 
 async function handleKeyClick(note: Note) {
   notesStore.setActiveNote(note)
@@ -29,10 +35,10 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
   }
 }
 
-const { baseMidi, shortcutLabels, activeMidiList } = useKeyboardPlay({
-  notes,
-  onNotePlay: handleKeyClick,
-})
+function handleOctaveChange(newBaseMidi: number) {
+  baseMidi.value = newBaseMidi
+  notesStore.setActiveNote(null)
+}
 
 const currentOctaveRange = computed(() => {
   const base = baseMidi.value
@@ -40,6 +46,10 @@ const currentOctaveRange = computed(() => {
   const highOctave = Math.floor((base + 12) / 12) - 1
   return `C${lowOctave} – B${highOctave}`
 })
+
+const shortcutNoteNames = computed(() =>
+  getShortcutNoteNames(baseMidi.value, notes.value),
+)
 
 const lowerKeys = getLowerOctaveKeys()
 const upperKeys = getUpperOctaveKeys()
@@ -61,17 +71,118 @@ const upperBlackKeys = upperKeys.filter(k => k.isBlack)
             钢琴键盘
           </v-card-title>
           <v-card-subtitle class="mb-3">
-            点击琴键查看音名与频率，并通过 Web Audio API 播放单音（C2 – B5）。可在上方切换音色波形后再点击琴键播放。也支持电脑键盘快捷键演奏。
+            点击琴键查看音名与频率，并通过 Web Audio API 播放单音（C2 – B5）。支持电脑键盘快捷键演奏。
           </v-card-subtitle>
 
           <WaveformSelector class="mb-3" />
 
+          <v-card variant="outlined" class="pa-3 mb-3">
+            <div class="d-flex align-center mb-2 flex-wrap">
+              <v-icon size="18" class="mr-1">
+                mdi-keyboard
+              </v-icon>
+              <span class="text-subtitle-2 font-weight-bold">键盘快捷键</span>
+              <v-chip size="x-small" variant="tonal" color="primary" class="ml-2">
+                {{ currentOctaveRange }}
+              </v-chip>
+              <v-spacer />
+              <span class="text-caption text-medium-emphasis">
+                ← / → 切换八度
+              </span>
+            </div>
+
+            <v-row dense>
+              <v-col cols="12" md="6">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  下排八度（低）
+                </div>
+                <div class="kb-row mb-1">
+                  <div class="kb-black-row">
+                    <span class="kb-spacer" />
+                    <span
+                      v-for="k in lowerBlackKeys.slice(0, 2)"
+                      :key="k.key"
+                      class="kb-key kb-key--black"
+                    >
+                      {{ k.key.toUpperCase() }}
+                      <span class="kb-note">{{ shortcutNoteNames[k.key]?.replace(/\d+$/, '') }}</span>
+                    </span>
+                    <span class="kb-spacer kb-spacer--double" />
+                    <span
+                      v-for="k in lowerBlackKeys.slice(2)"
+                      :key="k.key"
+                      class="kb-key kb-key--black"
+                    >
+                      {{ k.key.toUpperCase() }}
+                      <span class="kb-note">{{ shortcutNoteNames[k.key]?.replace(/\d+$/, '') }}</span>
+                    </span>
+                    <span class="kb-spacer" />
+                  </div>
+                </div>
+                <div class="kb-row">
+                  <div class="kb-white-row">
+                    <span
+                      v-for="k in lowerWhiteKeys"
+                      :key="k.key"
+                      class="kb-key"
+                    >
+                      {{ k.key.toUpperCase() }}
+                      <span class="kb-note">{{ shortcutNoteNames[k.key]?.replace(/\d+$/, '') }}</span>
+                    </span>
+                  </div>
+                </div>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  上排八度（高）
+                </div>
+                <div class="kb-row mb-1">
+                  <div class="kb-black-row">
+                    <span class="kb-spacer" />
+                    <span
+                      v-for="k in upperBlackKeys.slice(0, 2)"
+                      :key="k.key"
+                      class="kb-key kb-key--black"
+                    >
+                      {{ k.key.toUpperCase() }}
+                      <span class="kb-note">{{ shortcutNoteNames[k.key]?.replace(/\d+$/, '') }}</span>
+                    </span>
+                    <span class="kb-spacer kb-spacer--double" />
+                    <span
+                      v-for="k in upperBlackKeys.slice(2)"
+                      :key="k.key"
+                      class="kb-key kb-key--black"
+                    >
+                      {{ k.key.toUpperCase() }}
+                      <span class="kb-note">{{ shortcutNoteNames[k.key]?.replace(/\d+$/, '') }}</span>
+                    </span>
+                    <span class="kb-spacer" />
+                  </div>
+                </div>
+                <div class="kb-row">
+                  <div class="kb-white-row">
+                    <span
+                      v-for="k in upperWhiteKeys"
+                      :key="k.key"
+                      class="kb-key"
+                    >
+                      {{ k.key.toUpperCase() }}
+                      <span class="kb-note">{{ shortcutNoteNames[k.key]?.replace(/\d+$/, '') }}</span>
+                    </span>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+          </v-card>
+
           <PianoKeyboard
             :notes="notes"
             :active-midi="activeNote?.midi ?? null"
-            :selected-midis="activeMidiList"
-            :shortcut-labels="shortcutLabels"
+            :base-midi="baseMidi"
+            :enable-keyboard="true"
             @key-click="handleKeyClick"
+            @octave-change="handleOctaveChange"
           />
 
           <v-divider class="my-3" />
@@ -121,88 +232,6 @@ const upperBlackKeys = upperKeys.filter(k => k.isBlack)
 
           <v-divider class="my-3" />
 
-          <v-card variant="outlined" class="pa-3">
-            <div class="d-flex align-center mb-2">
-              <v-icon size="18" class="mr-1">
-                mdi-keyboard
-              </v-icon>
-              <span class="text-subtitle-2 font-weight-bold">键盘快捷键</span>
-              <v-chip size="x-small" variant="tonal" color="primary" class="ml-2">
-                {{ currentOctaveRange }}
-              </v-chip>
-            </div>
-
-            <div class="text-caption text-medium-emphasis mb-2">
-              下排八度
-            </div>
-            <div class="kb-row mb-1">
-              <div class="kb-black-row">
-                <span class="kb-spacer" />
-                <span
-                  v-for="k in lowerBlackKeys.slice(0, 2)"
-                  :key="k.key"
-                  class="kb-key kb-key--black"
-                >{{ k.key.toUpperCase() }}</span>
-                <span class="kb-spacer kb-spacer--double" />
-                <span
-                  v-for="k in lowerBlackKeys.slice(2)"
-                  :key="k.key"
-                  class="kb-key kb-key--black"
-                >{{ k.key.toUpperCase() }}</span>
-                <span class="kb-spacer" />
-              </div>
-            </div>
-            <div class="kb-row mb-3">
-              <div class="kb-white-row">
-                <span
-                  v-for="k in lowerWhiteKeys"
-                  :key="k.key"
-                  class="kb-key"
-                >{{ k.key.toUpperCase() }}</span>
-              </div>
-            </div>
-
-            <div class="text-caption text-medium-emphasis mb-2">
-              上排八度
-            </div>
-            <div class="kb-row mb-1">
-              <div class="kb-black-row">
-                <span class="kb-spacer" />
-                <span
-                  v-for="k in upperBlackKeys.slice(0, 2)"
-                  :key="k.key"
-                  class="kb-key kb-key--black"
-                >{{ k.key.toUpperCase() }}</span>
-                <span class="kb-spacer kb-spacer--double" />
-                <span
-                  v-for="k in upperBlackKeys.slice(2)"
-                  :key="k.key"
-                  class="kb-key kb-key--black"
-                >{{ k.key.toUpperCase() }}</span>
-                <span class="kb-spacer" />
-              </div>
-            </div>
-            <div class="kb-row mb-3">
-              <div class="kb-white-row">
-                <span
-                  v-for="k in upperWhiteKeys"
-                  :key="k.key"
-                  class="kb-key"
-                >{{ k.key.toUpperCase() }}</span>
-              </div>
-            </div>
-
-            <v-divider class="mb-2" />
-
-            <div class="d-flex align-center flex-wrap ga-2">
-              <span class="kb-key kb-key--action">←</span>
-              <span class="kb-key kb-key--action">→</span>
-              <span class="text-caption text-medium-emphasis">切换八度范围</span>
-            </div>
-          </v-card>
-
-          <v-divider class="my-3" />
-
           <NoteHistoryList @item-click="handleHistoryItemClick" />
         </v-card>
       </v-col>
@@ -218,54 +247,60 @@ const upperBlackKeys = upperKeys.filter(k => k.isBlack)
 
 .kb-white-row {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 .kb-black-row {
   display: flex;
-  gap: 4px;
-  margin-bottom: 3px;
+  gap: 3px;
+  margin-bottom: 2px;
 }
 
 .kb-key {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
-  height: 28px;
-  padding: 0 6px;
+  min-width: 32px;
+  height: 32px;
+  padding: 2px 4px;
   border: 1px solid #bbb;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-family: monospace;
+  font-weight: 600;
   background: linear-gradient(180deg, #fafafa 0%, #eee 100%);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   color: rgba(0, 0, 0, 0.7);
   line-height: 1;
 }
 
+.kb-note {
+  font-size: 0.55rem;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: 1px;
+  font-family: sans-serif;
+}
+
 .kb-key--black {
   background: linear-gradient(180deg, #444 0%, #222 100%);
   border-color: #111;
-  color: rgba(255, 255, 255, 0.85);
-  min-width: 26px;
-  height: 24px;
-  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.9);
+  min-width: 28px;
+  height: 28px;
+  font-size: 0.65rem;
 }
 
-.kb-key--action {
-  min-width: 28px;
-  height: 26px;
-  background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
-  border-color: #90caf9;
-  color: #1565c0;
+.kb-key--black .kb-note {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .kb-spacer {
-  width: 17px;
+  width: 18px;
 }
 
 .kb-spacer--double {
-  width: 38px;
+  width: 41px;
 }
 </style>

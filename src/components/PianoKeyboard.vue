@@ -1,23 +1,42 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Note } from '@/types/note'
 import { buildOctaveLayouts } from '@/utils/keyboard'
+import {
+  getMidiForKey,
+  getShortcutLabels,
+  DEFAULT_BASE_MIDI,
+  MIN_BASE_MIDI,
+  MAX_BASE_MIDI,
+} from '@/data/keyMapping'
 
 const props = defineProps<{
   notes: Note[]
   activeMidi?: number | null
   selectedMidis?: number[]
   compact?: boolean
-  shortcutLabels?: Record<number, string>
+  baseMidi?: number
+  enableKeyboard?: boolean
 }>()
 
 const emit = defineEmits<{
   keyClick: [note: Note]
+  octaveChange: [baseMidi: number]
 }>()
 
 const octaves = computed(() => buildOctaveLayouts(props.notes))
 
-function isHighlighted(note: Note): boolean {
+const currentBaseMidi = computed(() => props.baseMidi ?? DEFAULT_BASE_MIDI)
+const shortcutLabels = computed(() => getShortcutLabels(currentBaseMidi.value))
+
+const pressedMidis = ref<Set<number>>(new Set())
+const pressedKeys = ref<Set<string>>(new Set())
+
+function isPressed(note: Note): boolean {
+  return pressedMidis.value.has(note.midi)
+}
+
+function isActive(note: Note): boolean {
   if (props.activeMidi != null && note.midi === props.activeMidi) {
     return true
   }
@@ -33,8 +52,100 @@ function stopPropagation(e: Event) {
 }
 
 function getShortcutLabel(midi: number): string | undefined {
-  return props.shortcutLabels?.[midi]
+  return shortcutLabels.value[midi]
 }
+
+function isInputElement(element: EventTarget | null): boolean {
+  if (!element || !(element instanceof HTMLElement)) return false
+  const tag = element.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || element.isContentEditable
+}
+
+function handleKeyDown(e: KeyboardEvent) {
+  if (!props.enableKeyboard) return
+  if (isInputElement(e.target)) return
+  if (e.repeat) return
+
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    shiftOctave(-1)
+    return
+  }
+  if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    shiftOctave(1)
+    return
+  }
+
+  const key = e.key.toLowerCase()
+  if (pressedKeys.value.has(key)) return
+
+  const midi = getMidiForKey(key, currentBaseMidi.value)
+  if (midi === null) return
+
+  e.preventDefault()
+  pressedKeys.value = new Set([...pressedKeys.value, key])
+  pressedMidis.value = new Set([...pressedMidis.value, midi])
+
+  const note = props.notes.find(n => n.midi === midi)
+  if (note) {
+    emit('keyClick', note)
+  }
+}
+
+function handleKeyUp(e: KeyboardEvent) {
+  if (!props.enableKeyboard) return
+
+  const key = e.key.toLowerCase()
+  if (!pressedKeys.value.has(key)) return
+
+  const midi = getMidiForKey(key, currentBaseMidi.value)
+
+  const newPressedKeys = new Set(pressedKeys.value)
+  newPressedKeys.delete(key)
+  pressedKeys.value = newPressedKeys
+
+  if (midi !== null) {
+    const newPressedMidis = new Set(pressedMidis.value)
+    newPressedMidis.delete(midi)
+    pressedMidis.value = newPressedMidis
+  }
+}
+
+function shiftOctave(direction: number) {
+  const newBaseMidi = currentBaseMidi.value + direction * 12
+  if (newBaseMidi >= MIN_BASE_MIDI && newBaseMidi <= MAX_BASE_MIDI) {
+    pressedMidis.value = new Set()
+    pressedKeys.value = new Set()
+    emit('octaveChange', newBaseMidi)
+  }
+}
+
+function handleWindowBlur() {
+  pressedMidis.value = new Set()
+  pressedKeys.value = new Set()
+}
+
+function clearPressed() {
+  pressedMidis.value = new Set()
+  pressedKeys.value = new Set()
+}
+
+defineExpose({
+  clearPressed,
+})
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('keyup', handleKeyUp)
+  window.addEventListener('blur', handleWindowBlur)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('keyup', handleKeyUp)
+  window.removeEventListener('blur', handleWindowBlur)
+})
 </script>
 
 <template>
@@ -54,7 +165,10 @@ function getShortcutLabel(midi: number): string | undefined {
             :key="note.midi"
             type="button"
             class="key white-key"
-            :class="{ 'key--active': isHighlighted(note) }"
+            :class="{
+              'key--active': isActive(note),
+              'key--pressed': isPressed(note),
+            }"
             :aria-label="note.name"
             @click="handleKeyClick(note)"
           >
@@ -68,7 +182,10 @@ function getShortcutLabel(midi: number): string | undefined {
             :key="note.midi"
             type="button"
             class="key black-key"
-            :class="{ 'key--active': isHighlighted(note) }"
+            :class="{
+              'key--active': isActive(note),
+              'key--pressed': isPressed(note),
+            }"
             :style="{ left: `${note.position}%` }"
             :aria-label="note.name"
             @click.stop="stopPropagation($event); handleKeyClick(note)"
@@ -158,7 +275,11 @@ function getShortcutLabel(midi: number): string | undefined {
 }
 
 .white-key.key--active {
-  background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%);
+  background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.white-key.key--pressed {
+  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
 }
 
 .shortcut-label {
@@ -236,6 +357,10 @@ function getShortcutLabel(midi: number): string | undefined {
 }
 
 .black-key.key--active {
-  background: linear-gradient(180deg, #1565c0 0%, #0d47a1 100%);
+  background: linear-gradient(180deg, #1976d2 0%, #1565c0 100%);
+}
+
+.black-key.key--pressed {
+  background: linear-gradient(180deg, #0d47a1 0%, #0a3a82 100%);
 }
 </style>

@@ -1,3 +1,5 @@
+import type { Note } from '@/types/note'
+
 export interface KeyMapEntry {
   key: string
   semitoneOffset: number
@@ -54,6 +56,20 @@ export function getShortcutLabels(baseMidi: number): Record<number, string> {
     }
   }
   return labels
+}
+
+export function getShortcutNoteNames(baseMidi: number, notes: Note[]): Record<string, string> {
+  const map: Record<string, string> = {}
+  for (const entry of KEY_MAP) {
+    const midi = baseMidi + entry.semitoneOffset
+    if (midi >= MIDI_MIN && midi <= MIDI_MAX) {
+      const note = notes.find(n => n.midi === midi)
+      if (note) {
+        map[entry.key] = note.name
+      }
+    }
+  }
+  return map
 }
 
 export function getLowerOctaveKeys(): KeyMapEntry[] {
