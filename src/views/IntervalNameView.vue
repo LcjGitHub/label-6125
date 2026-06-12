@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
+import WaveformSelector from '@/components/WaveformSelector.vue'
 import { useNotesStore } from '@/stores/notes'
 import type { Note } from '@/types/note'
 import { playTone } from '@/utils/audio'
@@ -12,7 +13,7 @@ import {
 } from '@/utils/intervalName'
 
 const notesStore = useNotesStore()
-const { notes, selectedNote1, selectedNote2, centsDifference } =
+const { notes, selectedNote1, selectedNote2, centsDifference, waveform } =
   storeToRefs(notesStore)
 
 const selectedMidis = computed(() => {
@@ -48,7 +49,7 @@ onUnmounted(() => {
 
 async function handleKeyClick(note: Note) {
   notesStore.selectIntervalNote(note)
-  await playTone(note.frequency, 0.4)
+  await playTone(note.frequency, 0.4, waveform.value)
 }
 </script>
 
@@ -66,6 +67,8 @@ async function handleKeyClick(note: Note) {
           <v-card-subtitle class="mb-2 text-body-2">
             依次选择两个音，计算音分差并匹配对应的中文音程名称
           </v-card-subtitle>
+
+          <WaveformSelector class="mb-3" />
 
           <PianoKeyboard
             :notes="notes"

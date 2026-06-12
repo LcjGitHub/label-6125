@@ -1,3 +1,5 @@
+import type { WaveformType } from '@/types/note'
+
 let audioContext: AudioContext | null = null
 
 /**
@@ -11,11 +13,16 @@ export function getAudioContext(): AudioContext {
 }
 
 /**
- * 使用正弦波振荡器播放单音
+ * 使用指定波形振荡器播放单音
  * @param frequency 频率（Hz）
  * @param duration 持续时间（秒）
+ * @param waveform 波形类型（sine / square / triangle），默认 sine
  */
-export async function playTone(frequency: number, duration = 0.6): Promise<void> {
+export async function playTone(
+  frequency: number,
+  duration = 0.6,
+  waveform: WaveformType = 'sine',
+): Promise<void> {
   const ctx = getAudioContext()
   if (ctx.state === 'suspended') {
     await ctx.resume()
@@ -24,7 +31,7 @@ export async function playTone(frequency: number, duration = 0.6): Promise<void>
   const oscillator = ctx.createOscillator()
   const gainNode = ctx.createGain()
 
-  oscillator.type = 'sine'
+  oscillator.type = waveform
   oscillator.frequency.value = frequency
 
   const now = ctx.currentTime

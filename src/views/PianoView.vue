@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
+import WaveformSelector from '@/components/WaveformSelector.vue'
 import NoteHistoryList from '@/components/NoteHistoryList.vue'
 import { useNotesStore } from '@/stores/notes'
 import { useNoteHistoryStore } from '@/stores/noteHistory'
@@ -9,7 +10,7 @@ import { playTone } from '@/utils/audio'
 
 const notesStore = useNotesStore()
 const noteHistoryStore = useNoteHistoryStore()
-const { notes, activeNote } = storeToRefs(notesStore)
+const { notes, activeNote, waveform } = storeToRefs(notesStore)
 
 /**
  * 点击琴键：更新当前音并播放
@@ -18,7 +19,7 @@ const { notes, activeNote } = storeToRefs(notesStore)
 async function handleKeyClick(note: Note) {
   notesStore.setActiveNote(note)
   noteHistoryStore.addToHistory(note)
-  await playTone(note.frequency)
+  await playTone(note.frequency, 0.6, waveform.value)
 }
 
 /**
@@ -29,7 +30,7 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
   const note = notes.value.find(n => n.midi === item.note.midi)
   if (note) {
     notesStore.setActiveNote(note)
-    await playTone(note.frequency)
+    await playTone(note.frequency, 0.6, waveform.value)
   }
 }
 </script>
@@ -48,6 +49,8 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
           <v-card-subtitle class="mb-3">
             点击琴键查看音名与频率，并通过 Web Audio API 播放单音（C2 – B5）
           </v-card-subtitle>
+
+          <WaveformSelector class="mb-3" />
 
           <PianoKeyboard
             :notes="notes"

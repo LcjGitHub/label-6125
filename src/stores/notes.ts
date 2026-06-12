@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import type { Note, ReverseLookupResult } from '@/types/note'
+import type { Note, ReverseLookupResult, WaveformType } from '@/types/note'
 import { calculateCents } from '@/utils/interval'
 import { reverseLookupNote } from '@/utils/reverseLookup'
 import { recalculateAllFrequencies } from '@/utils/frequency'
+import { getStorageItem, setStorageItem } from '@/utils/storage'
 import { useNoteHistoryStore } from './noteHistory'
 
 const DEFAULT_BASE_FREQUENCY = 440
+const DEFAULT_WAVEFORM: WaveformType = 'sine'
+const WAVEFORM_STORAGE_KEY = 'waveform'
 
 export const useNotesStore = defineStore('notes', () => {
   const baseFrequency = ref<number>(DEFAULT_BASE_FREQUENCY)
@@ -15,6 +18,11 @@ export const useNotesStore = defineStore('notes', () => {
   const selectedNote1 = ref<Note | null>(null)
   const selectedNote2 = ref<Note | null>(null)
   const reverseLookupResult = ref<ReverseLookupResult | null>(null)
+  const waveform = ref<WaveformType>(getStorageItem<WaveformType>(WAVEFORM_STORAGE_KEY, DEFAULT_WAVEFORM))
+
+  watch(waveform, (newWaveform) => {
+    setStorageItem(WAVEFORM_STORAGE_KEY, newWaveform)
+  })
 
   function updateNoteReferences() {
     if (activeNote.value) {
@@ -117,6 +125,14 @@ export const useNotesStore = defineStore('notes', () => {
     baseFrequency.value = DEFAULT_BASE_FREQUENCY
   }
 
+  /**
+   * 设置波形音色
+   * @param type 波形类型（sine / square / triangle）
+   */
+  function setWaveform(type: WaveformType) {
+    waveform.value = type
+  }
+
   return {
     baseFrequency,
     notes,
@@ -126,6 +142,7 @@ export const useNotesStore = defineStore('notes', () => {
     centsDifference,
     reverseLookupResult,
     reverseLookupHighlightMidi,
+    waveform,
     setActiveNote,
     selectIntervalNote,
     clearIntervalSelection,
@@ -134,5 +151,6 @@ export const useNotesStore = defineStore('notes', () => {
     clearReverseLookup,
     setBaseFrequency,
     resetBaseFrequency,
+    setWaveform,
   }
 })

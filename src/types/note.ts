@@ -1,3 +1,5 @@
+export type WaveformType = 'sine' | 'square' | 'triangle'
+
 /** 十二平均律音名数据 */
 export interface Note {
   name: string
