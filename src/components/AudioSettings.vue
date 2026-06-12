@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import { useNotesStore } from '@/stores/notes'
 
 const notesStore = useNotesStore()
-const { volume, duration, validDurations } = storeToRefs(notesStore)
+const { volume, duration } = storeToRefs(notesStore)
 
 const volumePercent = computed({
   get: () => Math.round(volume.value * 100),
@@ -12,7 +12,7 @@ const volumePercent = computed({
 })
 
 const durationOptions = computed(() => {
-  return validDurations.value.map(d => ({
+  return notesStore.validDurations.map(d => ({
     value: d,
     title: `${d} 秒`,
   }))
