@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import type { Note, ReverseLookupResult, WaveformType } from '@/types/note'
-import { calculateCents } from '@/utils/interval'
+import { calculateCents, calculateSemitones, getIntervalDirection } from '@/utils/interval'
 import { reverseLookupNote } from '@/utils/reverseLookup'
 import { recalculateAllFrequencies } from '@/utils/frequency'
 import { getStorageItem, setStorageItem } from '@/utils/storage'
@@ -67,6 +67,20 @@ export const useNotesStore = defineStore('notes', () => {
       selectedNote1.value.frequency,
       selectedNote2.value.frequency,
     )
+  })
+
+  const semitoneCount = computed(() => {
+    if (centsDifference.value === null) {
+      return null
+    }
+    return calculateSemitones(centsDifference.value)
+  })
+
+  const intervalDirection = computed(() => {
+    if (centsDifference.value === null) {
+      return null
+    }
+    return getIntervalDirection(centsDifference.value)
   })
 
   const reverseLookupHighlightMidi = computed(() => {
@@ -150,6 +164,8 @@ export const useNotesStore = defineStore('notes', () => {
     selectedNote1,
     selectedNote2,
     centsDifference,
+    semitoneCount,
+    intervalDirection,
     reverseLookupResult,
     reverseLookupHighlightMidi,
     waveform,

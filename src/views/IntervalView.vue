@@ -6,10 +6,10 @@ import WaveformSelector from '@/components/WaveformSelector.vue'
 import { useNotesStore } from '@/stores/notes'
 import type { Note } from '@/types/note'
 import { playTone } from '@/utils/audio'
-import { formatCents } from '@/utils/interval'
+import { formatCents, formatSemitones, formatDirection } from '@/utils/interval'
 
 const notesStore = useNotesStore()
-const { notes, selectedNote1, selectedNote2, centsDifference, waveform } =
+const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform } =
   storeToRefs(notesStore)
 
 const selectedMidis = computed(() => {
@@ -54,8 +54,8 @@ async function handleKeyClick(note: Note) {
 
           <v-divider class="my-4" />
 
-          <v-row>
-            <v-col cols="12" md="4">
+          <v-row class="mb-4">
+            <v-col cols="12" md="6">
               <v-card variant="outlined" class="pa-4 h-100">
                 <div class="text-subtitle-2 text-medium-emphasis mb-1">
                   音 1（f₁）
@@ -74,7 +74,7 @@ async function handleKeyClick(note: Note) {
               </v-card>
             </v-col>
 
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="6">
               <v-card variant="outlined" class="pa-4 h-100">
                 <div class="text-subtitle-2 text-medium-emphasis mb-1">
                   音 2（f₂）
@@ -92,7 +92,9 @@ async function handleKeyClick(note: Note) {
                 </div>
               </v-card>
             </v-col>
+          </v-row>
 
+          <v-row>
             <v-col cols="12" md="4">
               <v-card
                 variant="tonal"
@@ -100,7 +102,7 @@ async function handleKeyClick(note: Note) {
                 class="pa-4 h-100"
               >
                 <div class="text-subtitle-2 text-medium-emphasis mb-1">
-                  音程差
+                  音分差
                 </div>
                 <template v-if="centsDifference !== null">
                   <div class="text-h5">
@@ -109,6 +111,73 @@ async function handleKeyClick(note: Note) {
                   <div class="text-caption mt-2">
                     log₂({{ selectedNote2?.frequency }} / {{ selectedNote1?.frequency }})
                     × 1200
+                  </div>
+                </template>
+                <div v-else class="text-body-2 text-medium-emphasis">
+                  请选择两个音
+                </div>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-card
+                variant="tonal"
+                color="primary"
+                class="pa-4 h-100"
+              >
+                <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                  半音数
+                </div>
+                <template v-if="semitoneCount !== null">
+                  <div class="text-h5">
+                    {{ formatSemitones(semitoneCount) }}
+                  </div>
+                  <div class="text-caption mt-2">
+                    音分差 ÷ 100
+                  </div>
+                </template>
+                <div v-else class="text-body-2 text-medium-emphasis">
+                  请选择两个音
+                </div>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-card
+                variant="tonal"
+                :color="
+                  intervalDirection === 'ascending'
+                    ? 'success'
+                    : intervalDirection === 'descending'
+                      ? 'error'
+                      : 'info'
+                "
+                class="pa-4 h-100"
+              >
+                <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                  方向
+                </div>
+                <template v-if="intervalDirection !== null">
+                  <div class="text-h5 d-flex align-center gap-2">
+                    <v-icon size="24">
+                      {{
+                        intervalDirection === 'ascending'
+                          ? 'mdi-trending-up'
+                          : intervalDirection === 'descending'
+                            ? 'mdi-trending-down'
+                            : 'mdi-minus'
+                      }}
+                    </v-icon>
+                    {{ formatDirection(intervalDirection) }}
+                  </div>
+                  <div class="text-caption mt-2">
+                    {{
+                      intervalDirection === 'ascending'
+                        ? '音 2 频率高于音 1'
+                        : intervalDirection === 'descending'
+                          ? '音 2 频率低于音 1'
+                          : '两音频率相同'
+                    }}
                   </div>
                 </template>
                 <div v-else class="text-body-2 text-medium-emphasis">
