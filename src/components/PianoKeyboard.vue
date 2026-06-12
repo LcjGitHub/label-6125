@@ -182,18 +182,18 @@ function stopPropagation(e: Event) {
   top: 0;
   left: 0;
   right: 0;
-  height: 88px;
+  height: 60%;
   pointer-events: none;
 }
 
 .piano-keyboard--compact .black-keys {
-  height: 55px;
+  height: 55%;
 }
 
 .black-key {
   position: absolute;
-  width: 45%;
-  max-width: 22px;
+  width: 32%;
+  max-width: 18px;
   height: 100%;
   transform: translateX(-50%);
   background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
@@ -204,8 +204,8 @@ function stopPropagation(e: Event) {
 }
 
 .piano-keyboard--compact .black-key {
-  width: 40%;
-  max-width: 18px;
+  width: 28%;
+  max-width: 15px;
 }
 
 .black-key.key--active {

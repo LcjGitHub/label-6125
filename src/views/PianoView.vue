@@ -35,7 +35,7 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
 </script>
 
 <template>
-  <v-container fluid class="py-6">
+  <v-container fluid class="pa-4 pb-16">
     <v-row justify="center">
       <v-col cols="12" lg="10">
         <v-card elevation="2" class="pa-4">
@@ -45,7 +45,7 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
             </v-icon>
             钢琴键盘
           </v-card-title>
-          <v-card-subtitle class="mb-4">
+          <v-card-subtitle class="mb-3">
             点击琴键查看音名与频率，并通过 Web Audio API 播放单音（C2 – B5）
           </v-card-subtitle>
 
@@ -55,35 +55,35 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
             @key-click="handleKeyClick"
           />
 
-          <v-divider class="my-4" />
+          <v-divider class="my-3" />
 
           <v-card
             variant="tonal"
             color="primary"
-            class="pa-4"
+            class="pa-3"
           >
             <template v-if="activeNote">
-              <div class="text-subtitle-1 font-weight-bold mb-2">
+              <div class="text-subtitle-1 font-weight-bold mb-1">
                 当前选中
               </div>
               <v-row dense>
-                <v-col cols="12" sm="6">
+                <v-col cols="6" sm="4">
                   <div class="text-body-2 text-medium-emphasis">
                     音名
                   </div>
-                  <div class="text-h4">
+                  <div class="text-h5">
                     {{ activeNote.name }}
                   </div>
                 </v-col>
-                <v-col cols="12" sm="6">
+                <v-col cols="6" sm="4">
                   <div class="text-body-2 text-medium-emphasis">
                     频率
                   </div>
-                  <div class="text-h4">
-                    {{ activeNote.frequency }} Hz
+                  <div class="text-h5">
+                    {{ activeNote.frequency.toFixed(2) }} Hz
                   </div>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="6" sm="4">
                   <div class="text-body-2 text-medium-emphasis">
                     MIDI
                   </div>
@@ -100,7 +100,7 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
             </template>
           </v-card>
 
-          <v-divider class="my-4" />
+          <v-divider class="my-3" />
 
           <NoteHistoryList @item-click="handleHistoryItemClick" />
         </v-card>
