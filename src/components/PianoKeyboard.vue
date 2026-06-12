@@ -14,6 +14,7 @@ const props = defineProps<{
   notes: Note[]
   activeMidi?: number | null
   selectedMidis?: number[]
+  playingMidi?: number | null
   compact?: boolean
   baseMidi?: number
   enableKeyboard?: boolean
@@ -66,6 +67,10 @@ function isActive(note: Note): boolean {
     return true
   }
   return props.selectedMidis?.includes(note.midi) ?? false
+}
+
+function isPlaying(note: Note): boolean {
+  return props.playingMidi != null && note.midi === props.playingMidi
 }
 
 function handleKeyClick(note: Note) {
@@ -200,6 +205,7 @@ onUnmounted(() => {
             :class="{
               'key--active': isActive(note),
               'key--pressed': isPressed(note),
+              'key--playing': isPlaying(note),
             }"
             :aria-label="note.name"
             @click="handleKeyClick(note)"
@@ -217,6 +223,7 @@ onUnmounted(() => {
             :class="{
               'key--active': isActive(note),
               'key--pressed': isPressed(note),
+              'key--playing': isPlaying(note),
             }"
             :style="{ left: `${note.position}%` }"
             :aria-label="note.name"
@@ -310,6 +317,11 @@ onUnmounted(() => {
   background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
 }
 
+.white-key.key--playing {
+  background: linear-gradient(180deg, #fff3e0 0%, #ffcc80 100%);
+  box-shadow: 0 0 12px rgba(255, 152, 0, 0.6), inset 0 -4px 6px rgba(0, 0, 0, 0.08);
+}
+
 .white-key.key--pressed {
   background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 100%);
 }
@@ -390,6 +402,11 @@ onUnmounted(() => {
 
 .black-key.key--active {
   background: linear-gradient(180deg, #1976d2 0%, #1565c0 100%);
+}
+
+.black-key.key--playing {
+  background: linear-gradient(180deg, #fb8c00 0%, #ef6c00 100%);
+  box-shadow: 0 0 14px rgba(255, 152, 0, 0.7), 0 3px 6px rgba(0, 0, 0, 0.35);
 }
 
 .black-key.key--pressed {

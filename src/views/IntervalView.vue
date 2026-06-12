@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
 import WaveformSelector from '@/components/WaveformSelector.vue'
 import AudioSettings from '@/components/AudioSettings.vue'
 import { useNotesStore } from '@/stores/notes'
 import type { Note } from '@/types/note'
-import { playTone } from '@/utils/audio'
+import { playTone, playTwoTonesSequential } from '@/utils/audio'
 import { formatCents, formatSemitones, formatDirection } from '@/utils/interval'
 
 const notesStore = useNotesStore()
 const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform, volume, duration, startOctave, endOctave } =
   storeToRefs(notesStore)
+
+const playingMidi = ref<number | null>(null)
+const isComparePlaying = ref(false)
 
 const selectedMidis = computed(() => {
   const midis: number[] = []
@@ -20,13 +23,39 @@ const selectedMidis = computed(() => {
   return midis
 })
 
-/**
- * 选择音并播放预览
- * @param note 被选中的音
- */
+const canComparePlay = computed(() => {
+  return !isComparePlaying.value && selectedNote1.value && selectedNote2.value
+})
+
 async function handleKeyClick(note: Note) {
   notesStore.selectIntervalNote(note)
   await playTone(note.frequency, duration.value, waveform.value, volume.value)
+}
+
+async function handleComparePlay() {
+  if (!selectedNote1.value || !selectedNote2.value || isComparePlaying.value) return
+
+  isComparePlaying.value = true
+  try {
+    const note1 = selectedNote1.value
+    const note2 = selectedNote2.value
+
+    await playTwoTonesSequential(note1.frequency, note2.frequency, {
+      toneDuration: duration.value,
+      gap: 0.35,
+      waveform: waveform.value,
+      volume: volume.value,
+      onToneStart: (index) => {
+        playingMidi.value = index === 0 ? note1.midi : note2.midi
+      },
+      onToneEnd: () => {
+        playingMidi.value = null
+      },
+    })
+  } finally {
+    isComparePlaying.value = false
+    playingMidi.value = null
+  }
 }
 </script>
 
@@ -94,6 +123,7 @@ async function handleKeyClick(note: Note) {
           <PianoKeyboard
             :notes="notes"
             :selected-midis="selectedMidis"
+            :playing-midi="playingMidi"
             :start-octave="startOctave"
             :end-octave="endOctave"
             @key-click="handleKeyClick"
@@ -226,7 +256,18 @@ async function handleKeyClick(note: Note) {
             </v-col>
           </v-row>
 
-          <div class="mt-4 d-flex justify-end">
+          <div class="mt-4 d-flex justify-end ga-2">
+            <v-btn
+              v-if="canComparePlay"
+              variant="flat"
+              color="orange-darken-1"
+              prepend-icon="mdi-play-pause"
+              :loading="isComparePlaying"
+              :disabled="isComparePlaying"
+              @click="handleComparePlay"
+            >
+              对比播放
+            </v-btn>
             <v-btn
               variant="outlined"
               prepend-icon="mdi-refresh"
