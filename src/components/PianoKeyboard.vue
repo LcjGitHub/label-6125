@@ -7,6 +7,7 @@ const props = defineProps<{
   notes: Note[]
   activeMidi?: number | null
   selectedMidis?: number[]
+  compact?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -33,10 +34,14 @@ function isHighlighted(note: Note): boolean {
 function handleKeyClick(note: Note) {
   emit('keyClick', note)
 }
+
+function stopPropagation(e: Event) {
+  e.stopPropagation()
+}
 </script>
 
 <template>
-  <div class="piano-keyboard">
+  <div class="piano-keyboard" :class="{ 'piano-keyboard--compact': compact }">
     <div
       v-for="layout in octaves"
       :key="layout.octave"
@@ -68,7 +73,7 @@ function handleKeyClick(note: Note) {
             :class="{ 'key--active': isHighlighted(note) }"
             :style="{ left: `${note.position}%` }"
             :aria-label="note.name"
-            @click="handleKeyClick(note)"
+            @click.stop="stopPropagation($event); handleKeyClick(note)"
           />
         </div>
       </div>
@@ -84,9 +89,17 @@ function handleKeyClick(note: Note) {
   padding: 8px 4px 16px;
 }
 
+.piano-keyboard--compact {
+  padding: 4px 2px 8px;
+}
+
 .octave {
   flex: 1;
   min-width: 210px;
+}
+
+.piano-keyboard--compact .octave {
+  min-width: 180px;
 }
 
 .octave-label {
@@ -94,6 +107,11 @@ function handleKeyClick(note: Note) {
   font-size: 0.75rem;
   color: rgba(var(--v-theme-on-surface), 0.6);
   margin-bottom: 6px;
+}
+
+.piano-keyboard--compact .octave-label {
+  font-size: 0.7rem;
+  margin-bottom: 4px;
 }
 
 .octave-keys {
@@ -105,10 +123,16 @@ function handleKeyClick(note: Note) {
   height: 140px;
 }
 
+.piano-keyboard--compact .white-keys {
+  height: 90px;
+}
+
 .key {
   border: none;
   cursor: pointer;
   transition: background-color 0.12s ease, transform 0.08s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .key:active {
@@ -122,6 +146,7 @@ function handleKeyClick(note: Note) {
   border-radius: 0 0 4px 4px;
   box-shadow: inset 0 -4px 6px rgba(0, 0, 0, 0.06);
   position: relative;
+  overflow: hidden;
 }
 
 .white-key:first-child {
@@ -147,6 +172,11 @@ function handleKeyClick(note: Note) {
   white-space: nowrap;
 }
 
+.piano-keyboard--compact .key-label {
+  font-size: 0.6rem;
+  bottom: 4px;
+}
+
 .black-keys {
   position: absolute;
   top: 0;
@@ -156,17 +186,26 @@ function handleKeyClick(note: Note) {
   pointer-events: none;
 }
 
+.piano-keyboard--compact .black-keys {
+  height: 55px;
+}
+
 .black-key {
   position: absolute;
-  width: 58%;
-  max-width: 28px;
+  width: 45%;
+  max-width: 22px;
   height: 100%;
   transform: translateX(-50%);
   background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
   border-radius: 0 0 3px 3px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35);
   pointer-events: auto;
-  z-index: 1;
+  z-index: 2;
+}
+
+.piano-keyboard--compact .black-key {
+  width: 40%;
+  max-width: 18px;
 }
 
 .black-key.key--active {
