@@ -16,7 +16,7 @@ const router = createRouter({
       meta: { title: '音程计算' },
     },
     {
-      path: '/reverse',
+      path: '/反查',
       name: 'reverse',
       component: () => import('@/views/ReverseLookupView.vue'),
       meta: { title: '反查' },

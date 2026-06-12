@@ -7,7 +7,7 @@ const route = useRoute()
 const navItems = [
   { title: '钢琴键盘', to: '/', icon: 'mdi-piano' },
   { title: '音程计算', to: '/interval', icon: 'mdi-tune-vertical' },
-  { title: '反查', to: '/reverse', icon: 'mdi-magnify' },
+  { title: '反查', to: '/反查', icon: 'mdi-magnify' },
 ]
 
 const activeTab = computed(() => route.path)

@@ -152,19 +152,6 @@ function getDeviationColor(): string {
 
           <v-divider class="my-4" />
 
-          <div class="reverse-keyboard-preview">
-            <div class="text-subtitle-2 text-medium-emphasis mb-2">
-              键盘预览（点击琴键查看对应音）
-            </div>
-            <PianoKeyboard
-              :notes="notes"
-              :active-midi="reverseLookupHighlightMidi"
-              @key-click="handleKeyClick"
-            />
-          </div>
-
-          <v-divider class="my-4" />
-
           <template v-if="reverseLookupResult">
             <v-row>
               <v-col cols="12" md="4">
@@ -228,7 +215,7 @@ function getDeviationColor(): string {
                     {{ getDeviationDescription(reverseLookupResult.centsDeviation) }}
                   </div>
                   <div class="text-caption mt-3 opacity-75">
-                    100 cents = 1 半音
+                    100 音分 = 1 半音
                   </div>
                 </v-card>
               </v-col>
@@ -245,6 +232,21 @@ function getDeviationColor(): string {
               </div>
             </v-card>
           </template>
+
+          <v-divider class="my-4" />
+
+          <div class="reverse-keyboard-preview">
+            <div class="text-subtitle-2 text-medium-emphasis mb-2">
+              键盘预览（点击琴键查看对应音）
+            </div>
+            <div class="keyboard-scroll">
+              <PianoKeyboard
+                :notes="notes"
+                :active-midi="reverseLookupHighlightMidi"
+                @key-click="handleKeyClick"
+              />
+            </div>
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -253,9 +255,40 @@ function getDeviationColor(): string {
 
 <style scoped>
 .reverse-keyboard-preview {
-  transform: scale(0.85);
-  transform-origin: top left;
-  width: calc(100% / 0.85);
-  margin-bottom: -30px;
+  max-height: 160px;
+  overflow: hidden;
+}
+
+.keyboard-scroll {
+  max-height: 130px;
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+.keyboard-scroll :deep(.piano-keyboard) {
+  gap: 2px;
+  padding: 4px 2px 8px;
+}
+
+.keyboard-scroll :deep(.octave) {
+  min-width: 140px;
+}
+
+.keyboard-scroll :deep(.white-keys) {
+  height: 90px;
+}
+
+.keyboard-scroll :deep(.key-label) {
+  font-size: 0.55rem;
+  bottom: 3px;
+}
+
+.keyboard-scroll :deep(.black-keys) {
+  height: 56px;
+}
+
+.keyboard-scroll :deep(.octave-label) {
+  font-size: 0.6rem;
+  margin-bottom: 2px;
 }
 </style>

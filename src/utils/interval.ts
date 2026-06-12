@@ -17,5 +17,5 @@ export function calculateCents(f1: number, f2: number): number {
  */
 export function formatCents(cents: number): string {
   const sign = cents >= 0 ? '+' : ''
-  return `${sign}${cents.toFixed(2)} cents`
+  return `${sign}${cents.toFixed(2)} 音分`
 }

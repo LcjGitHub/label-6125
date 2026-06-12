@@ -69,7 +69,7 @@ export function reverseLookupNote(
  */
 export function formatDeviationCents(cents: number): string {
   const sign = cents >= 0 ? '+' : ''
-  return `${sign}${cents.toFixed(2)} cents`
+  return `${sign}${cents.toFixed(2)} 音分`
 }
 
 /**
