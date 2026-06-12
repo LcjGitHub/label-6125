@@ -10,6 +10,16 @@ import { useNoteHistoryStore } from './noteHistory'
 const DEFAULT_BASE_FREQUENCY = 440
 const DEFAULT_WAVEFORM: WaveformType = 'sine'
 const WAVEFORM_STORAGE_KEY = 'waveform'
+const VALID_WAVEFORMS: readonly WaveformType[] = ['sine', 'square', 'triangle']
+
+function isValidWaveform(value: unknown): value is WaveformType {
+  return typeof value === 'string' && VALID_WAVEFORMS.includes(value as WaveformType)
+}
+
+function getStoredWaveform(): WaveformType {
+  const stored = getStorageItem<unknown>(WAVEFORM_STORAGE_KEY, DEFAULT_WAVEFORM)
+  return isValidWaveform(stored) ? stored : DEFAULT_WAVEFORM
+}
 
 export const useNotesStore = defineStore('notes', () => {
   const baseFrequency = ref<number>(DEFAULT_BASE_FREQUENCY)
@@ -18,7 +28,7 @@ export const useNotesStore = defineStore('notes', () => {
   const selectedNote1 = ref<Note | null>(null)
   const selectedNote2 = ref<Note | null>(null)
   const reverseLookupResult = ref<ReverseLookupResult | null>(null)
-  const waveform = ref<WaveformType>(getStorageItem<WaveformType>(WAVEFORM_STORAGE_KEY, DEFAULT_WAVEFORM))
+  const waveform = ref<WaveformType>(getStoredWaveform())
 
   watch(waveform, (newWaveform) => {
     setStorageItem(WAVEFORM_STORAGE_KEY, newWaveform)

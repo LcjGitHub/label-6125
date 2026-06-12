@@ -17,26 +17,24 @@ const waveformOptions: WaveformOption[] = [
   { value: 'square', label: '方波', icon: 'mdi-square-wave' },
   { value: 'triangle', label: '三角波', icon: 'mdi-triangle-wave' },
 ]
-
-function selectWaveform(type: WaveformType) {
-  notesStore.setWaveform(type)
-}
 </script>
 
 <template>
   <div class="waveform-selector">
-    <div class="d-flex align-center gap-2 flex-wrap">
+    <div class="waveform-selector__row">
       <v-icon size="20" class="text-medium-emphasis">
         mdi-waveform
       </v-icon>
-      <span class="text-subtitle-2 text-medium-emphasis">
+      <span class="waveform-selector__label text-subtitle-2 text-medium-emphasis">
         音色波形
       </span>
       <v-btn-toggle
-        :model-value="waveform"
+        v-model="waveform"
+        class="waveform-selector__toggle"
         density="comfortable"
         mandatory
-        @update:model-value="selectWaveform"
+        role="radiogroup"
+        aria-label="选择波形音色"
       >
         <v-btn
           v-for="option in waveformOptions"
@@ -45,6 +43,9 @@ function selectWaveform(type: WaveformType) {
           :prepend-icon="option.icon"
           size="small"
           variant="tonal"
+          role="radio"
+          :aria-checked="waveform === option.value"
+          :aria-label="`${option.label}波形`"
         >
           {{ option.label }}
         </v-btn>
@@ -56,5 +57,19 @@ function selectWaveform(type: WaveformType) {
 <style scoped>
 .waveform-selector {
   user-select: none;
+}
+
+.waveform-selector__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.waveform-selector__label {
+  margin: 0 12px 0 8px;
+}
+
+.waveform-selector__toggle {
+  margin-left: 4px;
 }
 </style>

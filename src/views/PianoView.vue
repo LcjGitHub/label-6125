@@ -47,7 +47,7 @@ async function handleHistoryItemClick(item: NoteHistoryItem) {
             钢琴键盘
           </v-card-title>
           <v-card-subtitle class="mb-3">
-            点击琴键查看音名与频率，并通过 Web Audio API 播放单音（C2 – B5）
+            点击琴键查看音名与频率，并通过 Web Audio API 播放单音（C2 – B5）。可在上方切换音色波形后再点击琴键播放。
           </v-card-subtitle>
 
           <WaveformSelector class="mb-3" />

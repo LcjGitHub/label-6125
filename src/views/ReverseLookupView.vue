@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
-import WaveformSelector from '@/components/WaveformSelector.vue'
 import { useNotesStore } from '@/stores/notes'
 import type { Note } from '@/types/note'
 import {
@@ -12,7 +11,7 @@ import {
 import { playTone } from '@/utils/audio'
 
 const notesStore = useNotesStore()
-const { notes, reverseLookupResult, reverseLookupHighlightMidi, waveform } =
+const { notes, reverseLookupResult, reverseLookupHighlightMidi } =
   storeToRefs(notesStore)
 
 const frequencyInput = ref<string>('')
@@ -72,7 +71,7 @@ function handleClear() {
 async function handleKeyClick(note: Note) {
   frequencyInput.value = String(note.frequency)
   notesStore.doReverseLookup(note.frequency)
-  await playTone(note.frequency, 0.4, waveform.value)
+  await playTone(note.frequency, 0.4)
 }
 
 /**
@@ -99,11 +98,9 @@ function getDeviationColor(): string {
             </v-icon>
             音名反查
           </v-card-title>
-          <v-card-subtitle class="mb-3">
+          <v-card-subtitle class="mb-4">
             输入频率（赫兹），根据十二平均律反查最接近的标准音名，并显示与标准音高的偏差音分数
           </v-card-subtitle>
-
-          <WaveformSelector class="mb-4" />
 
           <v-row align="end">
             <v-col cols="12" sm="8" md="6">
