@@ -12,3 +12,10 @@ export interface OctaveLayout {
   whiteKeys: Note[]
   blackKeys: Array<Note & { position: number }>
 }
+
+/** 音名反查结果 */
+export interface ReverseLookupResult {
+  note: Note
+  inputFrequency: number
+  centsDeviation: number
+}

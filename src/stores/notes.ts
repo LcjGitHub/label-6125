@@ -1,14 +1,16 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import notesData from '@/mock/notes.json'
-import type { Note } from '@/types/note'
+import type { Note, ReverseLookupResult } from '@/types/note'
 import { calculateCents } from '@/utils/interval'
+import { reverseLookupNote } from '@/utils/reverseLookup'
 
 export const useNotesStore = defineStore('notes', () => {
   const notes = ref<Note[]>(notesData as Note[])
   const activeNote = ref<Note | null>(null)
   const selectedNote1 = ref<Note | null>(null)
   const selectedNote2 = ref<Note | null>(null)
+  const reverseLookupResult = ref<ReverseLookupResult | null>(null)
 
   const centsDifference = computed(() => {
     if (!selectedNote1.value || !selectedNote2.value) {
@@ -18,6 +20,10 @@ export const useNotesStore = defineStore('notes', () => {
       selectedNote1.value.frequency,
       selectedNote2.value.frequency,
     )
+  })
+
+  const reverseLookupHighlightMidi = computed(() => {
+    return reverseLookupResult.value?.note.midi ?? null
   })
 
   /** 设置钢琴页当前点击的音 */
@@ -56,15 +62,32 @@ export const useNotesStore = defineStore('notes', () => {
     )
   }
 
+  /**
+   * 音名反查：根据频率查找最接近的标准音
+   * @param frequency 输入频率（Hz）
+   */
+  function doReverseLookup(frequency: number) {
+    reverseLookupResult.value = reverseLookupNote(frequency, notes.value)
+  }
+
+  /** 清空反查结果 */
+  function clearReverseLookup() {
+    reverseLookupResult.value = null
+  }
+
   return {
     notes,
     activeNote,
     selectedNote1,
     selectedNote2,
     centsDifference,
+    reverseLookupResult,
+    reverseLookupHighlightMidi,
     setActiveNote,
     selectIntervalNote,
     clearIntervalSelection,
     isNoteSelected,
+    doReverseLookup,
+    clearReverseLookup,
   }
 })

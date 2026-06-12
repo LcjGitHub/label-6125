@@ -15,6 +15,12 @@ const router = createRouter({
       component: () => import('@/views/IntervalView.vue'),
       meta: { title: '音程计算' },
     },
+    {
+      path: '/reverse',
+      name: 'reverse',
+      component: () => import('@/views/ReverseLookupView.vue'),
+      meta: { title: '反查' },
+    },
   ],
 })
 
