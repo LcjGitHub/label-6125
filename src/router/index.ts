@@ -16,6 +16,12 @@ const router = createRouter({
       meta: { title: '音程计算' },
     },
     {
+      path: '/音程名称',
+      name: 'interval-name',
+      component: () => import('@/views/IntervalNameView.vue'),
+      meta: { title: '音程名称' },
+    },
+    {
       path: '/反查',
       name: 'reverse',
       component: () => import('@/views/ReverseLookupView.vue'),

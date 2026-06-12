@@ -7,6 +7,7 @@ const route = useRoute()
 const navItems = [
   { title: '钢琴键盘', to: '/', icon: 'mdi-piano' },
   { title: '音程计算', to: '/interval', icon: 'mdi-tune-vertical' },
+  { title: '音程名称', to: '/音程名称', icon: 'mdi-music-note-search' },
   { title: '反查', to: '/反查', icon: 'mdi-magnify' },
   { title: '设置', to: '/设置', icon: 'mdi-cog' },
 ]
