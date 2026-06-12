@@ -23,11 +23,12 @@ const selectedMidis = computed(() => {
   return midis
 })
 
-const canComparePlay = computed(() => {
-  return !isComparePlaying.value && selectedNote1.value && selectedNote2.value
+const hasBothNotes = computed(() => {
+  return !!selectedNote1.value && !!selectedNote2.value
 })
 
 async function handleKeyClick(note: Note) {
+  if (isComparePlaying.value) return
   notesStore.selectIntervalNote(note)
   await playTone(note.frequency, duration.value, waveform.value, volume.value)
 }
@@ -258,10 +259,10 @@ async function handleComparePlay() {
 
           <div class="mt-4 d-flex justify-end ga-2">
             <v-btn
-              v-if="canComparePlay"
+              v-if="hasBothNotes"
               variant="flat"
               color="orange-darken-1"
-              prepend-icon="mdi-play-pause"
+              prepend-icon="mdi-play"
               :loading="isComparePlaying"
               :disabled="isComparePlaying"
               @click="handleComparePlay"
@@ -271,6 +272,7 @@ async function handleComparePlay() {
             <v-btn
               variant="outlined"
               prepend-icon="mdi-refresh"
+              :disabled="isComparePlaying"
               @click="notesStore.clearIntervalSelection()"
             >
               清空选择
