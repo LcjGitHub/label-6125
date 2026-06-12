@@ -8,6 +8,7 @@ const props = defineProps<{
   activeMidi?: number | null
   selectedMidis?: number[]
   compact?: boolean
+  shortcutLabels?: Record<number, string>
 }>()
 
 const emit = defineEmits<{
@@ -16,10 +17,6 @@ const emit = defineEmits<{
 
 const octaves = computed(() => buildOctaveLayouts(props.notes))
 
-/**
- * 判断琴键是否为高亮状态
- * @param note 音名数据
- */
 function isHighlighted(note: Note): boolean {
   if (props.activeMidi != null && note.midi === props.activeMidi) {
     return true
@@ -27,16 +24,16 @@ function isHighlighted(note: Note): boolean {
   return props.selectedMidis?.includes(note.midi) ?? false
 }
 
-/**
- * 处理琴键点击
- * @param note 被点击的音
- */
 function handleKeyClick(note: Note) {
   emit('keyClick', note)
 }
 
 function stopPropagation(e: Event) {
   e.stopPropagation()
+}
+
+function getShortcutLabel(midi: number): string | undefined {
+  return props.shortcutLabels?.[midi]
 }
 </script>
 
@@ -61,6 +58,7 @@ function stopPropagation(e: Event) {
             :aria-label="note.name"
             @click="handleKeyClick(note)"
           >
+            <span v-if="getShortcutLabel(note.midi)" class="shortcut-label">{{ getShortcutLabel(note.midi) }}</span>
             <span class="key-label">{{ note.name }}</span>
           </button>
         </div>
@@ -74,7 +72,9 @@ function stopPropagation(e: Event) {
             :style="{ left: `${note.position}%` }"
             :aria-label="note.name"
             @click.stop="stopPropagation($event); handleKeyClick(note)"
-          />
+          >
+            <span v-if="getShortcutLabel(note.midi)" class="shortcut-label shortcut-label--black">{{ getShortcutLabel(note.midi) }}</span>
+          </button>
         </div>
       </div>
     </div>
@@ -159,6 +159,33 @@ function stopPropagation(e: Event) {
 
 .white-key.key--active {
   background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%);
+}
+
+.shortcut-label {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-family: monospace;
+  color: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 2px;
+  padding: 0 3px;
+  pointer-events: none;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.shortcut-label--black {
+  bottom: 4px;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.piano-keyboard--compact .shortcut-label {
+  font-size: 0.55rem;
+  bottom: 18px;
 }
 
 .key-label {
