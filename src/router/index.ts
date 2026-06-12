@@ -21,6 +21,12 @@ const router = createRouter({
       component: () => import('@/views/ReverseLookupView.vue'),
       meta: { title: '反查' },
     },
+    {
+      path: '/设置',
+      name: 'settings',
+      component: () => import('@/views/SettingsView.vue'),
+      meta: { title: '设置' },
+    },
   ],
 })
 

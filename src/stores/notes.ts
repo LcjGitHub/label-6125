@@ -1,16 +1,42 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import notesData from '@/mock/notes.json'
+import { computed, ref, watch } from 'vue'
 import type { Note, ReverseLookupResult } from '@/types/note'
 import { calculateCents } from '@/utils/interval'
 import { reverseLookupNote } from '@/utils/reverseLookup'
+import { recalculateAllFrequencies } from '@/utils/frequency'
+
+const DEFAULT_BASE_FREQUENCY = 440
 
 export const useNotesStore = defineStore('notes', () => {
-  const notes = ref<Note[]>(notesData as Note[])
+  const baseFrequency = ref<number>(DEFAULT_BASE_FREQUENCY)
+  const notes = ref<Note[]>(recalculateAllFrequencies(baseFrequency.value))
   const activeNote = ref<Note | null>(null)
   const selectedNote1 = ref<Note | null>(null)
   const selectedNote2 = ref<Note | null>(null)
   const reverseLookupResult = ref<ReverseLookupResult | null>(null)
+
+  function updateNoteReferences() {
+    if (activeNote.value) {
+      activeNote.value = notes.value.find(n => n.midi === activeNote.value!.midi) ?? null
+    }
+    if (selectedNote1.value) {
+      selectedNote1.value = notes.value.find(n => n.midi === selectedNote1.value!.midi) ?? null
+    }
+    if (selectedNote2.value) {
+      selectedNote2.value = notes.value.find(n => n.midi === selectedNote2.value!.midi) ?? null
+    }
+    if (reverseLookupResult.value) {
+      const found = notes.value.find(n => n.midi === reverseLookupResult.value!.note.midi)
+      if (found) {
+        reverseLookupResult.value.note = found
+      }
+    }
+  }
+
+  watch(baseFrequency, (newFreq) => {
+    notes.value = recalculateAllFrequencies(newFreq)
+    updateNoteReferences()
+  })
 
   const centsDifference = computed(() => {
     if (!selectedNote1.value || !selectedNote2.value) {
@@ -75,7 +101,21 @@ export const useNotesStore = defineStore('notes', () => {
     reverseLookupResult.value = null
   }
 
+  /**
+   * 设置基准音高（A4 的频率，单位 Hz）
+   * @param freq 基准频率，默认 440Hz
+   */
+  function setBaseFrequency(freq: number) {
+    baseFrequency.value = freq
+  }
+
+  /** 重置基准音高为标准值 440Hz */
+  function resetBaseFrequency() {
+    baseFrequency.value = DEFAULT_BASE_FREQUENCY
+  }
+
   return {
+    baseFrequency,
     notes,
     activeNote,
     selectedNote1,
@@ -89,5 +129,7 @@ export const useNotesStore = defineStore('notes', () => {
     isNoteSelected,
     doReverseLookup,
     clearReverseLookup,
+    setBaseFrequency,
+    resetBaseFrequency,
   }
 })

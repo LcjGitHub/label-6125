@@ -8,6 +8,7 @@ const navItems = [
   { title: '钢琴键盘', to: '/', icon: 'mdi-piano' },
   { title: '音程计算', to: '/interval', icon: 'mdi-tune-vertical' },
   { title: '反查', to: '/反查', icon: 'mdi-magnify' },
+  { title: '设置', to: '/设置', icon: 'mdi-cog' },
 ]
 
 const activeTab = computed(() => route.path)
