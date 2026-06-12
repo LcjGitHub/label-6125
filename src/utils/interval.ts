@@ -16,8 +16,8 @@ export function calculateCents(f1: number, f2: number): number {
  * @param cents 音程差（cents）
  */
 export function formatCents(cents: number): string {
-  const sign = cents >= 0 ? '+' : ''
-  return `${sign}${cents.toFixed(2)} 音分`
+  const sign = cents > 0 ? '+' : cents < 0 ? '-' : ''
+  return `${sign}${Math.abs(cents).toFixed(2)} 音分`
 }
 
 /**
@@ -34,8 +34,8 @@ export function calculateSemitones(cents: number): number {
  * @param semitones 半音数目
  */
 export function formatSemitones(semitones: number): string {
-  const sign = semitones >= 0 ? '+' : ''
-  return `${sign}${semitones.toFixed(2)} 半音`
+  const sign = semitones > 0 ? '+' : semitones < 0 ? '-' : ''
+  return `${sign}${Math.abs(semitones).toFixed(2)} 半音`
 }
 
 /**
