@@ -4,6 +4,7 @@ import type { Note, ReverseLookupResult } from '@/types/note'
 import { calculateCents } from '@/utils/interval'
 import { reverseLookupNote } from '@/utils/reverseLookup'
 import { recalculateAllFrequencies } from '@/utils/frequency'
+import { useNoteHistoryStore } from './noteHistory'
 
 const DEFAULT_BASE_FREQUENCY = 440
 
@@ -31,6 +32,8 @@ export const useNotesStore = defineStore('notes', () => {
         reverseLookupResult.value.note = found
       }
     }
+    const noteHistoryStore = useNoteHistoryStore()
+    noteHistoryStore.updateHistoryNoteReferences(notes.value)
   }
 
   watch(baseFrequency, (newFreq) => {

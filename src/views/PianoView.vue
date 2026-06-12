@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
+import NoteHistoryList from '@/components/NoteHistoryList.vue'
 import { useNotesStore } from '@/stores/notes'
-import type { Note } from '@/types/note'
+import { useNoteHistoryStore } from '@/stores/noteHistory'
+import type { Note, NoteHistoryItem } from '@/types/note'
 import { playTone } from '@/utils/audio'
 
 const notesStore = useNotesStore()
+const noteHistoryStore = useNoteHistoryStore()
 const { notes, activeNote } = storeToRefs(notesStore)
 
 /**
@@ -14,7 +17,20 @@ const { notes, activeNote } = storeToRefs(notesStore)
  */
 async function handleKeyClick(note: Note) {
   notesStore.setActiveNote(note)
+  noteHistoryStore.addToHistory(note)
   await playTone(note.frequency)
+}
+
+/**
+ * 点击历史记录：播放并高亮对应琴键
+ * @param item 历史记录项
+ */
+async function handleHistoryItemClick(item: NoteHistoryItem) {
+  const note = notes.value.find(n => n.midi === item.note.midi)
+  if (note) {
+    notesStore.setActiveNote(note)
+    await playTone(note.frequency)
+  }
 }
 </script>
 
@@ -83,6 +99,10 @@ async function handleKeyClick(note: Note) {
               </div>
             </template>
           </v-card>
+
+          <v-divider class="my-4" />
+
+          <NoteHistoryList @item-click="handleHistoryItemClick" />
         </v-card>
       </v-col>
     </v-row>

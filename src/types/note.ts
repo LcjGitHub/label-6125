@@ -19,3 +19,9 @@ export interface ReverseLookupResult {
   inputFrequency: number
   centsDeviation: number
 }
+
+/** 音符播放历史记录 */
+export interface NoteHistoryItem {
+  note: Note
+  timestamp: number
+}
