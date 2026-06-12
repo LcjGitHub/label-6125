@@ -9,8 +9,13 @@ import { useNoteHistoryStore } from './noteHistory'
 
 const DEFAULT_BASE_FREQUENCY = 440
 const DEFAULT_WAVEFORM: WaveformType = 'sine'
+const DEFAULT_VOLUME = 0.35
+const DEFAULT_DURATION = 0.6
 const WAVEFORM_STORAGE_KEY = 'waveform'
+const VOLUME_STORAGE_KEY = 'volume'
+const DURATION_STORAGE_KEY = 'duration'
 const VALID_WAVEFORMS: readonly WaveformType[] = ['sine', 'square', 'triangle']
+const VALID_DURATIONS: readonly number[] = [0.2, 0.4, 0.6, 1.0, 1.5, 2.0]
 
 function isValidWaveform(value: unknown): value is WaveformType {
   return typeof value === 'string' && VALID_WAVEFORMS.includes(value as WaveformType)
@@ -21,6 +26,24 @@ function getStoredWaveform(): WaveformType {
   return isValidWaveform(stored) ? stored : DEFAULT_WAVEFORM
 }
 
+function isValidVolume(value: unknown): value is number {
+  return typeof value === 'number' && !isNaN(value) && value >= 0 && value <= 1
+}
+
+function getStoredVolume(): number {
+  const stored = getStorageItem<unknown>(VOLUME_STORAGE_KEY, DEFAULT_VOLUME)
+  return isValidVolume(stored) ? stored : DEFAULT_VOLUME
+}
+
+function isValidDuration(value: unknown): value is number {
+  return typeof value === 'number' && !isNaN(value) && VALID_DURATIONS.includes(value)
+}
+
+function getStoredDuration(): number {
+  const stored = getStorageItem<unknown>(DURATION_STORAGE_KEY, DEFAULT_DURATION)
+  return isValidDuration(stored) ? stored : DEFAULT_DURATION
+}
+
 export const useNotesStore = defineStore('notes', () => {
   const baseFrequency = ref<number>(DEFAULT_BASE_FREQUENCY)
   const notes = ref<Note[]>(recalculateAllFrequencies(baseFrequency.value))
@@ -29,9 +52,19 @@ export const useNotesStore = defineStore('notes', () => {
   const selectedNote2 = ref<Note | null>(null)
   const reverseLookupResult = ref<ReverseLookupResult | null>(null)
   const waveform = ref<WaveformType>(getStoredWaveform())
+  const volume = ref<number>(getStoredVolume())
+  const duration = ref<number>(getStoredDuration())
 
   watch(waveform, (newWaveform) => {
     setStorageItem(WAVEFORM_STORAGE_KEY, newWaveform)
+  })
+
+  watch(volume, (newVolume) => {
+    setStorageItem(VOLUME_STORAGE_KEY, newVolume)
+  })
+
+  watch(duration, (newDuration) => {
+    setStorageItem(DURATION_STORAGE_KEY, newDuration)
   })
 
   function updateNoteReferences() {
@@ -157,6 +190,24 @@ export const useNotesStore = defineStore('notes', () => {
     waveform.value = type
   }
 
+  /**
+   * 设置音量
+   * @param value 音量值（0-1）
+   */
+  function setVolume(value: number) {
+    volume.value = Math.max(0, Math.min(1, value))
+  }
+
+  /**
+   * 设置持续时间
+   * @param value 持续时间（秒）
+   */
+  function setDuration(value: number) {
+    if (VALID_DURATIONS.includes(value)) {
+      duration.value = value
+    }
+  }
+
   return {
     baseFrequency,
     notes,
@@ -169,6 +220,9 @@ export const useNotesStore = defineStore('notes', () => {
     reverseLookupResult,
     reverseLookupHighlightMidi,
     waveform,
+    volume,
+    duration,
+    validDurations: VALID_DURATIONS,
     setActiveNote,
     selectIntervalNote,
     clearIntervalSelection,
@@ -178,5 +232,7 @@ export const useNotesStore = defineStore('notes', () => {
     setBaseFrequency,
     resetBaseFrequency,
     setWaveform,
+    setVolume,
+    setDuration,
   }
 })

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
 import WaveformSelector from '@/components/WaveformSelector.vue'
+import AudioSettings from '@/components/AudioSettings.vue'
 import NoteHistoryList from '@/components/NoteHistoryList.vue'
 import { useNotesStore } from '@/stores/notes'
 import { useNoteHistoryStore } from '@/stores/noteHistory'
@@ -17,21 +18,21 @@ import {
 
 const notesStore = useNotesStore()
 const noteHistoryStore = useNoteHistoryStore()
-const { notes, activeNote, waveform } = storeToRefs(notesStore)
+const { notes, activeNote, waveform, volume, duration } = storeToRefs(notesStore)
 
 const baseMidi = ref(DEFAULT_BASE_MIDI)
 
 async function handleKeyClick(note: Note) {
   notesStore.setActiveNote(note)
   noteHistoryStore.addToHistory(note)
-  await playTone(note.frequency, 0.6, waveform.value)
+  await playTone(note.frequency, duration.value, waveform.value, volume.value)
 }
 
 async function handleHistoryItemClick(item: NoteHistoryItem) {
   const note = notes.value.find(n => n.midi === item.note.midi)
   if (note) {
     notesStore.setActiveNote(note)
-    await playTone(note.frequency, 0.6, waveform.value)
+    await playTone(note.frequency, duration.value, waveform.value, volume.value)
   }
 }
 
@@ -75,6 +76,8 @@ const upperBlackKeys = upperKeys.filter(k => k.isBlack)
           </v-card-subtitle>
 
           <WaveformSelector class="mb-3" />
+
+          <AudioSettings class="mb-3" />
 
           <v-card variant="outlined" class="pa-3 mb-3">
             <div class="d-flex align-center mb-2 flex-wrap">

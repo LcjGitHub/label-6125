@@ -11,7 +11,7 @@ import {
 import { playTone } from '@/utils/audio'
 
 const notesStore = useNotesStore()
-const { notes, reverseLookupResult, reverseLookupHighlightMidi } =
+const { notes, reverseLookupResult, reverseLookupHighlightMidi, volume, duration, waveform } =
   storeToRefs(notesStore)
 
 const frequencyInput = ref<string>('')
@@ -71,7 +71,7 @@ function handleClear() {
 async function handleKeyClick(note: Note) {
   frequencyInput.value = String(note.frequency)
   notesStore.doReverseLookup(note.frequency)
-  await playTone(note.frequency, 0.4)
+  await playTone(note.frequency, duration.value, waveform.value, volume.value)
 }
 
 /**

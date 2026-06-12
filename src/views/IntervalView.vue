@@ -3,13 +3,14 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
 import WaveformSelector from '@/components/WaveformSelector.vue'
+import AudioSettings from '@/components/AudioSettings.vue'
 import { useNotesStore } from '@/stores/notes'
 import type { Note } from '@/types/note'
 import { playTone } from '@/utils/audio'
 import { formatCents, formatSemitones, formatDirection } from '@/utils/interval'
 
 const notesStore = useNotesStore()
-const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform } =
+const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform, volume, duration } =
   storeToRefs(notesStore)
 
 const selectedMidis = computed(() => {
@@ -25,7 +26,7 @@ const selectedMidis = computed(() => {
  */
 async function handleKeyClick(note: Note) {
   notesStore.selectIntervalNote(note)
-  await playTone(note.frequency, 0.4, waveform.value)
+  await playTone(note.frequency, duration.value, waveform.value, volume.value)
 }
 </script>
 
@@ -45,6 +46,8 @@ async function handleKeyClick(note: Note) {
           </v-card-subtitle>
 
           <WaveformSelector class="mb-4" />
+
+          <AudioSettings class="mb-4" />
 
           <PianoKeyboard
             :notes="notes"

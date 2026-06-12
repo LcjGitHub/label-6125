@@ -12,7 +12,7 @@ import {
 } from '@/utils/intervalName'
 
 const notesStore = useNotesStore()
-const { notes, selectedNote1, selectedNote2, centsDifference } =
+const { notes, selectedNote1, selectedNote2, centsDifference, volume, duration, waveform } =
   storeToRefs(notesStore)
 
 const selectedMidis = computed(() => {
@@ -48,7 +48,7 @@ onUnmounted(() => {
 
 async function handleKeyClick(note: Note) {
   notesStore.selectIntervalNote(note)
-  await playTone(note.frequency, 0.4)
+  await playTone(note.frequency, duration.value, waveform.value, volume.value)
 }
 </script>
 
