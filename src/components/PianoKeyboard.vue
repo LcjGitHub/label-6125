@@ -17,6 +17,8 @@ const props = defineProps<{
   compact?: boolean
   baseMidi?: number
   enableKeyboard?: boolean
+  startOctave?: number
+  endOctave?: number
 }>()
 
 const emit = defineEmits<{
@@ -24,7 +26,9 @@ const emit = defineEmits<{
   octaveChange: [baseMidi: number]
 }>()
 
-const octaves = computed(() => buildOctaveLayouts(props.notes))
+const octaves = computed(() =>
+  buildOctaveLayouts(props.notes, props.startOctave, props.endOctave),
+)
 
 const currentBaseMidi = computed(() => props.baseMidi ?? DEFAULT_BASE_MIDI)
 const shortcutLabels = computed(() => getShortcutLabels(currentBaseMidi.value))

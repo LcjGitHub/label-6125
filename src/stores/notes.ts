@@ -11,11 +11,16 @@ const DEFAULT_BASE_FREQUENCY = 440
 const DEFAULT_WAVEFORM: WaveformType = 'sine'
 const DEFAULT_VOLUME = 0.35
 const DEFAULT_DURATION = 0.6
+const DEFAULT_START_OCTAVE = 2
+const DEFAULT_END_OCTAVE = 5
 const WAVEFORM_STORAGE_KEY = 'waveform'
 const VOLUME_STORAGE_KEY = 'volume'
 const DURATION_STORAGE_KEY = 'duration'
+const START_OCTAVE_STORAGE_KEY = 'startOctave'
+const END_OCTAVE_STORAGE_KEY = 'endOctave'
 const VALID_WAVEFORMS: readonly WaveformType[] = ['sine', 'square', 'triangle']
 const VALID_DURATIONS: readonly number[] = [0.2, 0.4, 0.6, 1.0, 1.5, 2.0]
+const AVAILABLE_OCTAVES: readonly number[] = [2, 3, 4, 5]
 
 function isValidWaveform(value: unknown): value is WaveformType {
   return typeof value === 'string' && VALID_WAVEFORMS.includes(value as WaveformType)
@@ -44,6 +49,20 @@ function getStoredDuration(): number {
   return isValidDuration(stored) ? stored : DEFAULT_DURATION
 }
 
+function isValidOctave(value: unknown): value is number {
+  return typeof value === 'number' && AVAILABLE_OCTAVES.includes(value)
+}
+
+function getStoredStartOctave(): number {
+  const stored = getStorageItem<unknown>(START_OCTAVE_STORAGE_KEY, DEFAULT_START_OCTAVE)
+  return isValidOctave(stored) ? stored : DEFAULT_START_OCTAVE
+}
+
+function getStoredEndOctave(): number {
+  const stored = getStorageItem<unknown>(END_OCTAVE_STORAGE_KEY, DEFAULT_END_OCTAVE)
+  return isValidOctave(stored) ? stored : DEFAULT_END_OCTAVE
+}
+
 export const useNotesStore = defineStore('notes', () => {
   const baseFrequency = ref<number>(DEFAULT_BASE_FREQUENCY)
   const notes = ref<Note[]>(recalculateAllFrequencies(baseFrequency.value))
@@ -54,6 +73,8 @@ export const useNotesStore = defineStore('notes', () => {
   const waveform = ref<WaveformType>(getStoredWaveform())
   const volume = ref<number>(getStoredVolume())
   const duration = ref<number>(getStoredDuration())
+  const startOctave = ref<number>(getStoredStartOctave())
+  const endOctave = ref<number>(getStoredEndOctave())
 
   watch(waveform, (newWaveform) => {
     setStorageItem(WAVEFORM_STORAGE_KEY, newWaveform)
@@ -65,6 +86,20 @@ export const useNotesStore = defineStore('notes', () => {
 
   watch(duration, (newDuration) => {
     setStorageItem(DURATION_STORAGE_KEY, newDuration)
+  })
+
+  watch(startOctave, (newStartOctave) => {
+    setStorageItem(START_OCTAVE_STORAGE_KEY, newStartOctave)
+    if (endOctave.value < newStartOctave) {
+      endOctave.value = newStartOctave
+    }
+  })
+
+  watch(endOctave, (newEndOctave) => {
+    setStorageItem(END_OCTAVE_STORAGE_KEY, newEndOctave)
+    if (startOctave.value > newEndOctave) {
+      startOctave.value = newEndOctave
+    }
   })
 
   function updateNoteReferences() {
@@ -208,6 +243,34 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
+  /**
+   * 设置起始八度
+   * @param value 起始八度值
+   */
+  function setStartOctave(value: number) {
+    if (AVAILABLE_OCTAVES.includes(value)) {
+      startOctave.value = value
+    }
+  }
+
+  /**
+   * 设置结束八度
+   * @param value 结束八度值
+   */
+  function setEndOctave(value: number) {
+    if (AVAILABLE_OCTAVES.includes(value)) {
+      endOctave.value = value
+    }
+  }
+
+  /**
+   * 重置八度范围为默认值（全部四个八度）
+   */
+  function resetOctaveRange() {
+    startOctave.value = DEFAULT_START_OCTAVE
+    endOctave.value = DEFAULT_END_OCTAVE
+  }
+
   return {
     baseFrequency,
     notes,
@@ -222,7 +285,10 @@ export const useNotesStore = defineStore('notes', () => {
     waveform,
     volume,
     duration,
+    startOctave,
+    endOctave,
     validDurations: VALID_DURATIONS,
+    availableOctaves: AVAILABLE_OCTAVES,
     setActiveNote,
     selectIntervalNote,
     clearIntervalSelection,
@@ -234,5 +300,8 @@ export const useNotesStore = defineStore('notes', () => {
     setWaveform,
     setVolume,
     setDuration,
+    setStartOctave,
+    setEndOctave,
+    resetOctaveRange,
   }
 })

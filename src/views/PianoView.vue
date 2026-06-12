@@ -18,7 +18,7 @@ import {
 
 const notesStore = useNotesStore()
 const noteHistoryStore = useNoteHistoryStore()
-const { notes, activeNote, waveform, volume, duration } = storeToRefs(notesStore)
+const { notes, activeNote, waveform, volume, duration, startOctave, endOctave, availableOctaves } = storeToRefs(notesStore)
 
 const baseMidi = ref(DEFAULT_BASE_MIDI)
 
@@ -179,11 +179,55 @@ const upperBlackKeys = upperKeys.filter(k => k.isBlack)
             </v-row>
           </v-card>
 
+          <v-card variant="outlined" class="pa-3 mb-3">
+            <div class="d-flex align-center flex-wrap ga-2">
+              <v-icon size="18">
+                mdi-filter-outline
+              </v-icon>
+              <span class="text-subtitle-2 font-weight-bold">八度范围</span>
+              <v-select
+                v-model="startOctave"
+                :items="availableOctaves"
+                label="起始"
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="max-width: 90px;"
+                @update:model-value="notesStore.setStartOctave($event)"
+              />
+              <span class="text-body-2 text-medium-emphasis">—</span>
+              <v-select
+                v-model="endOctave"
+                :items="availableOctaves"
+                label="结束"
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="max-width: 90px;"
+                @update:model-value="notesStore.setEndOctave($event)"
+              />
+              <v-chip size="small" variant="tonal" color="primary">
+                C{{ startOctave }} – B{{ endOctave }}
+              </v-chip>
+              <v-spacer />
+              <v-btn
+                size="small"
+                variant="text"
+                prepend-icon="mdi-refresh"
+                @click="notesStore.resetOctaveRange()"
+              >
+                重置
+              </v-btn>
+            </div>
+          </v-card>
+
           <PianoKeyboard
             :notes="notes"
             :active-midi="activeNote?.midi ?? null"
             :base-midi="baseMidi"
             :enable-keyboard="true"
+            :start-octave="startOctave"
+            :end-octave="endOctave"
             @key-click="handleKeyClick"
             @octave-change="handleOctaveChange"
           />

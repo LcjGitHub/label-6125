@@ -31,12 +31,20 @@ function parsePitchClass(name: string): string {
 /**
  * 将 C2–B5 音名列表组织为钢琴键盘八度布局
  * @param notes 音名数据
+ * @param startOctave 起始八度（包含），默认不限制
+ * @param endOctave 结束八度（包含），默认不限制
  */
-export function buildOctaveLayouts(notes: Note[]): OctaveLayout[] {
+export function buildOctaveLayouts(
+  notes: Note[],
+  startOctave?: number,
+  endOctave?: number,
+): OctaveLayout[] {
   const byOctave = new Map<number, Note[]>()
 
   for (const note of notes) {
     const octave = parseOctave(note.name)
+    if (startOctave !== undefined && octave < startOctave) continue
+    if (endOctave !== undefined && octave > endOctave) continue
     const group = byOctave.get(octave) ?? []
     group.push(note)
     byOctave.set(octave, group)

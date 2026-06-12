@@ -10,7 +10,7 @@ import { playTone } from '@/utils/audio'
 import { formatCents, formatSemitones, formatDirection } from '@/utils/interval'
 
 const notesStore = useNotesStore()
-const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform, volume, duration } =
+const { notes, selectedNote1, selectedNote2, centsDifference, semitoneCount, intervalDirection, waveform, volume, duration, startOctave, endOctave, availableOctaves } =
   storeToRefs(notesStore)
 
 const selectedMidis = computed(() => {
@@ -49,9 +49,53 @@ async function handleKeyClick(note: Note) {
 
           <AudioSettings class="mb-4" />
 
+          <v-card variant="outlined" class="pa-3 mb-4">
+            <div class="d-flex align-center flex-wrap ga-2">
+              <v-icon size="18">
+                mdi-filter-outline
+              </v-icon>
+              <span class="text-subtitle-2 font-weight-bold">八度范围</span>
+              <v-select
+                v-model="startOctave"
+                :items="availableOctaves"
+                label="起始"
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="max-width: 90px;"
+                @update:model-value="notesStore.setStartOctave($event)"
+              />
+              <span class="text-body-2 text-medium-emphasis">—</span>
+              <v-select
+                v-model="endOctave"
+                :items="availableOctaves"
+                label="结束"
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="max-width: 90px;"
+                @update:model-value="notesStore.setEndOctave($event)"
+              />
+              <v-chip size="small" variant="tonal" color="primary">
+                C{{ startOctave }} – B{{ endOctave }}
+              </v-chip>
+              <v-spacer />
+              <v-btn
+                size="small"
+                variant="text"
+                prepend-icon="mdi-refresh"
+                @click="notesStore.resetOctaveRange()"
+              >
+                重置
+              </v-btn>
+            </div>
+          </v-card>
+
           <PianoKeyboard
             :notes="notes"
             :selected-midis="selectedMidis"
+            :start-octave="startOctave"
+            :end-octave="endOctave"
             @key-click="handleKeyClick"
           />
 
