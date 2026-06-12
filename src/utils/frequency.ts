@@ -9,7 +9,7 @@ export function calculateFrequency(midi: number, baseFreq: number): number {
 }
 
 export function recalculateAllFrequencies(baseFreq: number): Note[] {
-  return (notesData as Omit<Note, 'frequency'>[]).map((note) => ({
+  return notesData.map((note) => ({
     ...note,
     frequency: Math.round(calculateFrequency(note.midi, baseFreq) * 100) / 100,
   }))

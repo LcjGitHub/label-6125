@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useNotesStore } from '@/stores/notes'
 
@@ -7,19 +7,37 @@ const notesStore = useNotesStore()
 const { baseFrequency, notes } = storeToRefs(notesStore)
 
 const inputValue = ref(baseFrequency.value)
+const inputError = ref('')
 
 const c4 = computed(() => notes.value.find(n => n.midi === 60))
 const a4 = computed(() => notes.value.find(n => n.midi === 69))
 const c5 = computed(() => notes.value.find(n => n.midi === 72))
 
-function handleInput() {
-  const val = Number(inputValue.value)
-  if (val >= 380 && val <= 500) {
-    notesStore.setBaseFrequency(val)
+watch(baseFrequency, (newVal) => {
+  inputValue.value = newVal
+})
+
+function validateAndSet(val: number) {
+  if (isNaN(val) || !isFinite(val)) {
+    inputError.value = '请输入有效的数字'
+    inputValue.value = baseFrequency.value
+    return
   }
+  if (val < 380 || val > 500) {
+    inputError.value = '频率需在 380 – 500 Hz 范围内'
+    inputValue.value = baseFrequency.value
+    return
+  }
+  inputError.value = ''
+  notesStore.setBaseFrequency(val)
+}
+
+function handleInput() {
+  validateAndSet(Number(inputValue.value))
 }
 
 function handleSlider(val: number) {
+  inputError.value = ''
   inputValue.value = val
   notesStore.setBaseFrequency(val)
 }
@@ -63,6 +81,8 @@ function handleSlider(val: number) {
                 :min="380"
                 :max="500"
                 step="0.1"
+                :error="!!inputError"
+                :error-messages="inputError"
                 @change="handleInput"
               />
             </v-col>

@@ -30,9 +30,25 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach((to, _from, next) => {
+  const decodedPath = decodeURIComponent(to.path)
+  if (decodedPath !== to.path) {
+    next({ ...to, path: decodedPath, replace: true })
+    return
+  }
+  next()
+})
+
 router.afterEach((to) => {
   const title = (to.meta.title as string) ?? '十二平均律'
   document.title = `${title} · 十二平均律`
 })
+
+if (router.currentRoute.value.name == null) {
+  const initialPath = decodeURIComponent(window.location.pathname)
+  if (initialPath !== router.currentRoute.value.path) {
+    router.replace(initialPath)
+  }
+}
 
 export default router

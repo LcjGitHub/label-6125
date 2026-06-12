@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import PianoKeyboard from '@/components/PianoKeyboard.vue'
 import { useNotesStore } from '@/stores/notes'
@@ -17,12 +17,12 @@ const { notes, reverseLookupResult, reverseLookupHighlightMidi } =
 const frequencyInput = ref<string>('')
 const inputError = ref<string>('')
 
-const presetFrequencies = [
-  { label: 'A4 标准音', value: 440 },
-  { label: 'C4 中央C', value: 261.63 },
-  { label: 'E4', value: 329.63 },
-  { label: 'G4', value: 392 },
-]
+const presetFrequencies = computed(() => [
+  { label: 'A4 标准音', value: notes.value.find(n => n.midi === 69)?.frequency ?? 440 },
+  { label: 'C4 中央C', value: notes.value.find(n => n.midi === 60)?.frequency ?? 261.63 },
+  { label: 'E4', value: notes.value.find(n => n.midi === 64)?.frequency ?? 329.63 },
+  { label: 'G4', value: notes.value.find(n => n.midi === 67)?.frequency ?? 392 },
+])
 
 /**
  * 验证并执行反查
